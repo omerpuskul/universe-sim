@@ -20,7 +20,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # cache satiri kaldirildi — package-lock.json olmadan cache calismiyor
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -29,15 +28,17 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # npm ci yerine npm install kullaniyoruz
-      # ci komutu package-lock.json ZORUNLU kilar
-      # install komutu lock dosyasi olmadan da calisir ve kendisi olusturur
       - name: Install dependencies
         run: npm install
 
       - name: Build web app
         run: npm run build
 
+      # ÖNCE Android platformunu oluştur (android/ klasörünü yaratır)
+      - name: Add Android platform
+        run: npx cap add android
+
+      # SONRA web dosyalarını Android projesine kopyala
       - name: Sync Capacitor Android
         run: npx cap sync android
 
