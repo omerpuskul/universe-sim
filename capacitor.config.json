@@ -1,0 +1,11 @@
+{
+  "appId": "com.omerpuskul.universesim",
+  "appName": "Evren Simülasyonu",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": true
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
