@@ -1,78 +1,56 @@
-# ============================================================
-# GitHub Actions — Evren Simülasyonu Android APK Build Pipeline
-# ============================================================
-# Bu workflow her push'ta otomatik olarak:
-# 1. Node.js kurar ve npm bağımlılıklarını yükler
-# 2. Vite ile React projesini build eder
-# 3. Capacitor ile Android projesini senkronize eder
-# 4. Gradle ile debug APK oluşturur
-# 5. APK'yı indirilebilir "artifact" olarak sunar
-#
-# Sen sadece kodu GitHub'a push'la, gerisini bu pipeline halleder.
-# ============================================================
-
 name: Android APK Build
 
-# Ne zaman çalışsın?
 on:
   push:
-    branches: [ main ]          # main branch'e push'ta otomatik çalışır
-  workflow_dispatch:             # GitHub arayüzünden manuel de tetiklenebilir
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     name: Build Android APK
-    runs-on: ubuntu-latest       # Microsoft'un Ubuntu sunucusunda çalışır
+    runs-on: ubuntu-latest
 
     steps:
-      # 1. Kodu çek
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Java 17 kur (Android build için gerekli)
       - name: Setup Java JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # 3. Node.js 20 kur
+      # cache satiri kaldirildi — package-lock.json olmadan cache calismiyor
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'            # npm cache'i — sonraki build'ler daha hızlı
 
-      # 4. Android SDK kur
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 5. npm bağımlılıklarını yükle
+      # npm ci yerine npm install kullaniyoruz
+      # ci komutu package-lock.json ZORUNLU kilar
+      # install komutu lock dosyasi olmadan da calisir ve kendisi olusturur
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      # 6. Vite ile React projesini build et
       - name: Build web app
         run: npm run build
 
-      # 7. Capacitor ile Android projesini senkronize et
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      # 8. Gradle'a çalıştırma izni ver
       - name: Make Gradle executable
         run: chmod +x android/gradlew
 
-      # 9. Debug APK oluştur
       - name: Build Debug APK
         working-directory: android
         run: ./gradlew assembleDebug
 
-      # 10. APK'yı indirilebilir artifact olarak yükle
-      #     GitHub Actions sayfasından "Artifacts" bölümünden indirebilirsin
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: evren-simulasyonu-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30      # 30 gün boyunca indirilebilir kalır
+          retention-days: 30
